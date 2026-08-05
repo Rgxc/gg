@@ -1,5 +1,5 @@
 -- ====================================================================
--- Mine A Mountain | Rgx Hub (Full Fixed Version - Auto Dig, Auto Low Server, ESP InstantMine & Auto Mountain)
+-- Mine A Mountain | Rgx Hub (Full Fixed Version - Auto Dig, Auto Low Server, ESP, InstantMine & Auto Mountain)
 -- ====================================================================
 
 local CoreGui = game:GetService("CoreGui")
@@ -31,14 +31,14 @@ local Config = {
 	DropRune = false,
 	FarmingCrystal = false,
 	CrystalMutasiTerminus = false,
-	AutoMountain = false,
-	MiningTool = "The Terminus",
 	AutoDigMisc = true,
 	AutoDigDuration = "60s",
 	InfinityJump = false,
 	AutoLowServer = false,
 	HopDelay = "60s",
-	OtomatisMinimize = true
+	OtomatisMinimize = true,
+	AutoMountain = false,
+	SelectedTool = "The Terminus"
 }
 
 local function saveConfig()
@@ -276,71 +276,262 @@ local BtnCrystalTerminus, BgCrystalTerminus, CircleCrystalTerminus = createToggl
 local BtnNocturnite, BgNocturnite, CircleNocturnite = createToggleFeature(MiningPage, "Nocturnite Farm")
 local BtnRune, BgRune, CircleRune = createToggleFeature(MiningPage, "Collect Rune")
 
--- ====================================================================
--- AUTO MOUNTAIN & TOOL SELECTOR (INTEGRATED INTO MINING TAB)
--- ====================================================================
-local BtnAutoMountain, BgAutoMountain, CircleAutoMountain = createToggleFeature(MiningPage, "Auto Mountain")
-
-local ToolDropdownBtn = Instance.new("TextButton")
-ToolDropdownBtn.Parent = MiningPage
-ToolDropdownBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 36)
-ToolDropdownBtn.Size = UDim2.new(1, -8, 0, 32)
-ToolDropdownBtn.TextColor3 = Color3.fromRGB(220, 220, 235)
-ToolDropdownBtn.Text = "  Tool: " .. Config.MiningTool .. " ▼"
-ToolDropdownBtn.TextXAlignment = Enum.TextXAlignment.Left
-ToolDropdownBtn.TextSize = 9
-ToolDropdownBtn.Font = Enum.Font.GothamMedium
-ToolDropdownBtn.AutoButtonColor = false
-
-local ToolDropdownCorner = Instance.new("UICorner") ToolDropdownCorner.CornerRadius = UDim.new(0, 6) ToolDropdownCorner.Parent = ToolDropdownBtn
-local ToolDropdownStroke = Instance.new("UIStroke") ToolDropdownStroke.Color = Color3.fromRGB(45, 45, 60) ToolDropdownStroke.Thickness = 1 ToolDropdownStroke.Parent = ToolDropdownBtn
-
-local ToolScrollingFrame = Instance.new("ScrollingFrame")
-ToolScrollingFrame.Parent = MiningPage
-ToolScrollingFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
-ToolScrollingFrame.Size = UDim2.new(1, -8, 0, 60)
-ToolScrollingFrame.BorderSizePixel = 0
-ToolScrollingFrame.Visible = false
-ToolScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 60)
-ToolScrollingFrame.ScrollBarThickness = 2
-ToolScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 80)
-
-local ToolUIListLayout = Instance.new("UIListLayout")
-ToolUIListLayout.Parent = ToolScrollingFrame
-ToolUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-ToolUIListLayout.Padding = UDim.new(0, 3)
-
-local toolOptions = {"The Terminus", "Sledge Hammer"}
-for _, tName in ipairs(toolOptions) do
-	local optBtn = Instance.new("TextButton")
-	optBtn.Parent = ToolScrollingFrame
-	optBtn.BackgroundColor3 = Color3.fromRGB(32, 32, 40)
-	optBtn.Size = UDim2.new(1, -4, 0, 26)
-	optBtn.TextColor3 = Color3.fromRGB(180, 180, 195)
-	optBtn.Text = "  " .. tName
-	optBtn.TextXAlignment = Enum.TextXAlignment.Left
-	optBtn.TextSize = 9
-	optBtn.Font = Enum.Font.Gotham
-	local c = Instance.new("UICorner") c.CornerRadius = UDim.new(0, 4) c.Parent = optBtn
-	
-	optBtn.MouseButton1Click:Connect(function()
-		Config.MiningTool = tName
-		saveConfig()
-		ToolDropdownBtn.Text = "  Tool: " .. tName .. " ▼"
-		ToolScrollingFrame.Visible = false
-	end)
-end
-
-local isToolDropdownOpen = false
-ToolDropdownBtn.MouseButton1Click:Connect(function()
-	isToolDropdownOpen = not isToolDropdownOpen
-	ToolScrollingFrame.Visible = isToolDropdownOpen
-end)
-
 local BtnESP1, BgESP1, CircleESP1 = createToggleFeature(ESPPage, "Mutasi Terminus")
 local BtnESP2, BgESP2, CircleESP2 = createToggleFeature(ESPPage, "Nocturnite")
 local BtnInstanMineESP, BgInstanMineESP, CircleInstanMineESP = createToggleFeature(ESPPage, "Instan Mine")
 local BtnFastDig, BgFastDig, CircleFastDig = createToggleFeature(ESPPage, "Fast Dig")
+
+-- ====================================================================
+-- INTEGRASI AUTO MOUNTAIN & TOOL KE DALAM ESP TAB
+-- ====================================================================
+createCategoryLabel(ESPPage, "Auto Mountain & Tools")
+
+local BtnAutoMountain, BgAutoMountain, CircleAutoMountain = createToggleFeature(ESPPage, "Auto Mountain")
+
+local ToolSelectHeader = Instance.new("TextLabel")
+ToolSelectHeader.Parent = ESPPage
+ToolSelectHeader.BackgroundTransparency = 1
+ToolSelectHeader.Size = UDim2.new(1, -8, 0, 20)
+ToolSelectHeader.Font = Enum.Font.GothamBold
+ToolSelectHeader.Text = "Pilih Tool:"
+ToolSelectHeader.TextColor3 = Color3.fromRGB(200, 200, 200)
+ToolSelectHeader.TextSize = 9
+ToolSelectHeader.TextXAlignment = Enum.TextXAlignment.Left
+
+local BtnTerminusTool = Instance.new("TextButton")
+BtnTerminusTool.Parent = ESPPage
+BtnTerminusTool.BackgroundColor3 = Color3.fromRGB(50, 150, 200)
+BtnTerminusTool.Size = UDim2.new(1, -8, 0, 28)
+BtnTerminusTool.Font = Enum.Font.GothamMedium
+BtnTerminusTool.Text = "  The Terminus"
+BtnTerminusTool.TextColor3 = Color3.fromRGB(255, 255, 255)
+BtnTerminusTool.TextSize = 9
+BtnTerminusTool.TextXAlignment = Enum.TextXAlignment.Left
+BtnTerminusTool.AutoButtonColor = false
+
+local TerminusCorner = Instance.new("UICorner") TerminusCorner.CornerRadius = UDim.new(0, 6) TerminusCorner.Parent = BtnTerminusTool
+
+local BtnSledgeTool = Instance.new("TextButton")
+BtnSledgeTool.Parent = ESPPage
+BtnSledgeTool.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+BtnSledgeTool.Size = UDim2.new(1, -8, 0, 28)
+BtnSledgeTool.Font = Enum.Font.GothamMedium
+BtnSledgeTool.Text = "  Sledge Hammer"
+BtnSledgeTool.TextColor3 = Color3.fromRGB(255, 255, 255)
+BtnSledgeTool.TextSize = 9
+BtnSledgeTool.TextXAlignment = Enum.TextXAlignment.Left
+BtnSledgeTool.AutoButtonColor = false
+
+local SledgeCorner = Instance.new("UICorner") SledgeCorner.CornerRadius = UDim.new(0, 6) SledgeCorner.Parent = BtnSledgeTool
+
+local selectedToolName = Config.SelectedTool or "The Terminus"
+local isAutoFarmRunning = false
+
+local function refreshToolButtonsUI()
+	if selectedToolName == "The Terminus" then
+		BtnTerminusTool.BackgroundColor3 = Color3.fromRGB(50, 150, 200)
+		BtnSledgeTool.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	else
+		BtnTerminusTool.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+		BtnSledgeTool.BackgroundColor3 = Color3.fromRGB(50, 150, 200)
+	end
+end
+refreshToolButtonsUI()
+
+BtnTerminusTool.MouseButton1Click:Connect(function()
+	selectedToolName = "The Terminus"
+	Config.SelectedTool = selectedToolName
+	saveConfig()
+	refreshToolButtonsUI()
+	if isAutoFarmRunning then
+		local char, hum, _, bp = player.Character, player.Character and player.Character:FindFirstChildOfClass("Humanoid"), player.Character and player.Character:FindFirstChild("HumanoidRootPart"), player:FindFirstChild("Backpack")
+		if hum and bp then
+			local tool = bp:FindFirstChild("The Terminus")
+			if tool then hum:EquipTool(tool) end
+		end
+	end
+end)
+
+BtnSledgeTool.MouseButton1Click:Connect(function()
+	selectedToolName = "Sledge Hammer"
+	Config.SelectedTool = selectedToolName
+	saveConfig()
+	refreshToolButtonsUI()
+	if isAutoFarmRunning then
+		local char, hum, _, bp = player.Character, player.Character and player.Character:FindFirstChildOfClass("Humanoid"), player.Character and player.Character:FindFirstChild("HumanoidRootPart"), player:FindFirstChild("Backpack")
+		if hum and bp then
+			local tool = bp:FindFirstChild("Sledge Hammer") or bp:FindFirstChildWhichIsA("Tool")
+			if tool then hum:EquipTool(tool) end
+		end
+	end
+end)
+
+local TargetTerrainMaterials = {
+	Enum.Material.Ground, Enum.Material.Sandstone, Enum.Material.Rock,
+	Enum.Material.Snow, Enum.Material.Ice, Enum.Material.Glacier,
+	Enum.Material.Slate, Enum.Material.Basalt, Enum.Material.Limestone
+}
+
+local sledgeSwingRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("SledgeSwing")
+
+local function equipSelectedToolAutoMountain()
+	local char = player.Character
+	if not char then return end
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	local bp = player:FindFirstChild("Backpack")
+	if not hum or not bp then return end
+	
+	if char:FindFirstChild(selectedToolName) then
+		local active = char:FindFirstChild(selectedToolName)
+		pcall(function() active:Activate() end)
+		return
+	end
+	
+	local tool = bp:FindFirstChild(selectedToolName)
+	if not tool and selectedToolName == "Sledge Hammer" then
+		for _, item in ipairs(bp:GetChildren()) do
+			if item:IsA("Tool") then
+				local name = item.Name:lower()
+				if name:find("sledge") or name:find("hammer") or name:find("dig") or name:find("shovel") then
+					tool = item
+					break
+				end
+			end
+		end
+	end
+	if tool and tool:IsA("Tool") then
+		hum:EquipTool(tool)
+		pcall(function() tool:Activate() end)
+	end
+end
+
+local function findHighestMountainPeak()
+	local char = player.Character
+	if not char then return nil end
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+	if not hrp then return nil end
+	local rootPos = hrp.Position
+
+	local bestPos = nil
+	local highestY = -math.huge
+	local yawAngles = {0, 45, 90, 135, 180, 225, 270, 315}
+	local pitchAngles = {15, 35, 55}
+
+	for _, yaw in ipairs(yawAngles) do
+		for _, pitch in ipairs(pitchAngles) do
+			local yawRad = math.rad(yaw)
+			local pitchRad = math.rad(pitch)
+			local horizontalDist = 200 * math.cos(pitchRad)
+			local verticalDist = 200 * math.sin(pitchRad)
+			
+			local dir = Vector3.new(
+				math.cos(yawRad) * horizontalDist,
+				verticalDist,
+				math.sin(yawRad) * horizontalDist
+			)
+			
+			local rayParams = RaycastParams.new()
+			rayParams.IgnoreWater = true
+			local rayResult = workspace:Raycast(rootPos + Vector3.new(0, 3, 0), dir, rayParams)
+			if rayResult and rayResult.Material then
+				for _, mat in ipairs(TargetTerrainMaterials) do
+					if rayResult.Material == mat then
+						if rayResult.Position.Y > highestY then
+							highestY = rayResult.Position.Y
+							bestPos = rayResult.Position
+						end
+						break
+					end
+				end
+			end
+		end
+	end
+
+	if not bestPos then
+		local downRay = workspace:Raycast(rootPos + Vector3.new(0, 5, 0), Vector3.new(0, -150, 0), RaycastParams.new())
+		if downRay and downRay.Material then
+			for _, mat in ipairs(TargetTerrainMaterials) do
+				if downRay.Material == mat then
+					bestPos = downRay.Position
+					break
+				end
+			end
+		end
+	end
+
+	return bestPos
+end
+
+local function tweenToPositionAutoMountain(targetPos)
+	local char = player.Character
+	if not char then return end
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+	if not hrp or not hum or hum.Health <= 0 then return end
+
+	local distance = (hrp.Position - targetPos).Magnitude
+	local speed = 140
+	local timeTaken = math.clamp(distance / speed, 0.1, 2.5)
+
+	local tweenInfo = TweenInfo.new(timeTaken, Enum.EasingStyle.Linear)
+	local tween = TweenService:Create(hrp, tweenInfo, {CFrame = CFrame.new(targetPos + Vector3.new(0, 3, 0))})
+	tween:Play()
+	
+	local startTime = tick()
+	while tween.PlaybackState == Enum.PlaybackState.Playing do
+		task.wait(0.05)
+		local currentChar = player.Character
+		local currentHum = currentChar and currentChar:FindFirstChildOfClass("Humanoid")
+		local currentHrp = currentChar and currentChar:FindFirstChild("HumanoidRootPart")
+		if tick() - startTime > timeTaken + 1 or not currentHrp or not currentHum or currentHum.Health <= 0 then
+			tween:Cancel()
+			break
+		end
+	end
+end
+
+task.spawn(function()
+	while true do
+		task.wait(0.2)
+		if isAutoFarmRunning then
+			pcall(function()
+				local char = player.Character
+				if not char then return end
+				local hum = char:FindFirstChildOfClass("Humanoid")
+				local hrp = char:FindFirstChild("HumanoidRootPart")
+				if not hrp or not hum or hum.Health <= 0 then return end
+
+				equipSelectedToolAutoMountain()
+				local peakPos = findHighestMountainPeak()
+				if peakPos then
+					tweenToPositionAutoMountain(peakPos)
+				end
+
+				local currentHrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+				if currentHrp then
+					local pos = currentHrp.Position
+					local feetPos = pos - Vector3.new(0, 3, 0)
+					if selectedToolName == "The Terminus" then
+						digRequest:FireServer("The Terminus", Vector3.new(pos.X, pos.Y, pos.Z))
+					elseif selectedToolName == "Sledge Hammer" then
+						sledgeSwingRemote:FireServer(Vector3.new(feetPos.X, feetPos.Y, feetPos.Z))
+					end
+				end
+			end)
+		end
+	end
+end)
+
+BtnAutoMountain.MouseButton1Click:Connect(function()
+	isAutoFarmRunning = not isAutoFarmRunning
+	Config.AutoMountain = isAutoFarmRunning
+	saveConfig()
+	setToggleState(BgAutoMountain, CircleAutoMountain, isAutoFarmRunning)
+	if isAutoFarmRunning then
+		equipSelectedToolAutoMountain()
+	end
+end)
+-- ====================================================================
 
 local runeList = {
 	"Weight Rune", "Detonation Rune", "Preservation Rune", "Colossus Rune",
@@ -381,7 +572,7 @@ DropSwitchBg.Parent = DropRuneContainer
 
 local DropSwitchBgCorner = Instance.new("UICorner") DropSwitchBgCorner.CornerRadius = UDim.new(1, 0) DropSwitchBgCorner.Parent = DropSwitchBg
 local DropSwitchCircle = Instance.new("Frame") DropSwitchCircle.Size = UDim2.new(0, 16, 0, 16) DropSwitchCircle.Position = UDim2.new(0, 2, 0.5, -8) DropSwitchCircle.BackgroundColor3 = Color3.fromRGB(150, 150, 170) DropSwitchCircle.BorderSizePixel = 0 DropSwitchCircle.Parent = DropSwitchBg
-local DropSwitchCircleCorner = Instance.new("UICorner") DropSwitchCircleCorner.CornerRadius = UDim.new(1, 0) DropSwitchCircleCorner.Parent = DropSwitchCircle
+local DropSwitchCircleCorner = Instance.new("UICorner") DropSwitchCircleCorner.CornerRadius = UDim.new(1, 0) DropSwitchCircleCorner.Parent = DropSwitchBg
 
 local DropdownButton = Instance.new("TextButton")
 DropdownButton.Parent = RunePage
@@ -566,191 +757,6 @@ local isOpen = not Config.OtomatisMinimize
 ToggleBtn.MouseButton1Click:Connect(function()
 	isOpen = not isOpen
 	MainFrame.Visible = isOpen
-end)
-
--- ====================================================================
--- AUTO MOUNTAIN & DIG LOGIC (INTEGRATED)
--- ====================================================================
-local remotesRef = ReplicatedStorage:WaitForChild("Remotes")
-local digRequest = remotesRef:WaitForChild("DigRequest")
-local sledgeSwing = remotesRef:WaitForChild("SledgeSwing")
-
-local TargetTerrainMaterials = {
-	Enum.Material.Ground,
-	Enum.Material.Sandstone,
-	Enum.Material.Rock,
-	Enum.Material.Snow,
-	Enum.Material.Ice,
-	Enum.Material.Glacier,
-	Enum.Material.Slate,
-	Enum.Material.Basalt,
-	Enum.Material.Limestone
-}
-
-local function getCharacterParts()
-	local char = player.Character
-	if not char then return nil, nil, nil, nil end
-	local hum = char:FindFirstChildOfClass("Humanoid")
-	local hrp = char:FindFirstChild("HumanoidRootPart")
-	local bp = player:FindFirstChild("Backpack")
-	return char, hum, hrp, bp
-end
-
-local function equipSelectedTool()
-	local toolName = Config.MiningTool or "The Terminus"
-	local char, hum, _, bp = getCharacterParts()
-	if not char or not hum or not bp then return end
-	
-	if char:FindFirstChild(toolName) then
-		local activeTool = char:FindFirstChild(toolName)
-		pcall(function() activeTool:Activate() end)
-		return
-	end
-	
-	local tool = bp:FindFirstChild(toolName)
-	if not tool and toolName == "Sledge Hammer" then
-		for _, item in ipairs(bp:GetChildren()) do
-			if item:IsA("Tool") then
-				local name = item.Name:lower()
-				if name:find("sledge") or name:find("hammer") or name:find("dig") or name:find("shovel") then
-					tool = item
-					break
-				end
-			end
-		end
-	end
-	
-	if tool and tool:IsA("Tool") then
-		hum:EquipTool(tool)
-		pcall(function() tool:Activate() end)
-	end
-end
-
-local function findHighestMountainPeak()
-	local _, _, hrp, _ = getCharacterParts()
-	if not hrp then return nil end
-	local rootPos = hrp.Position
-
-	local bestPos = nil
-	local highestY = -math.huge
-
-	local yawAngles = {0, 45, 90, 135, 180, 225, 270, 315}
-	local pitchAngles = {15, 35, 55}
-
-	for _, yaw in ipairs(yawAngles) do
-		for _, pitch in ipairs(pitchAngles) do
-			local yawRad = math.rad(yaw)
-			local pitchRad = math.rad(pitch)
-			
-			local horizontalDist = 200 * math.cos(pitchRad)
-			local verticalDist = 200 * math.sin(pitchRad)
-			
-			local dir = Vector3.new(
-				math.cos(yawRad) * horizontalDist,
-				verticalDist,
-				math.sin(yawRad) * horizontalDist
-			)
-			
-			local rayParams = RaycastParams.new()
-			rayParams.IgnoreWater = true
-			
-			local rayResult = workspace:Raycast(rootPos + Vector3.new(0, 3, 0), dir, rayParams)
-			if rayResult and rayResult.Material then
-				for _, mat in ipairs(TargetTerrainMaterials) do
-					if rayResult.Material == mat then
-						if rayResult.Position.Y > highestY then
-							highestY = rayResult.Position.Y
-							bestPos = rayResult.Position
-						end
-						break
-					end
-				end
-			end
-		end
-	end
-
-	if not bestPos then
-		local downRay = workspace:Raycast(rootPos + Vector3.new(0, 5, 0), Vector3.new(0, -150, 0), RaycastParams.new())
-		if downRay and downRay.Material then
-			for _, mat in ipairs(TargetTerrainMaterials) do
-				if downRay.Material == mat then
-					bestPos = downRay.Position
-					break
-				end
-			end
-		end
-	end
-
-	return bestPos
-end
-
-local function tweenToPosition(targetPos)
-	local _, hum, hrp, _ = getCharacterParts()
-	if not hrp or not hum or hum.Health <= 0 then return end
-
-	local distance = (hrp.Position - targetPos).Magnitude
-	local speed = 140
-	local timeTaken = math.clamp(distance / speed, 0.1, 2.5)
-
-	local tweenInfo = TweenInfo.new(timeTaken, Enum.EasingStyle.Linear)
-	local tween = TweenService:Create(hrp, tweenInfo, {CFrame = CFrame.new(targetPos + Vector3.new(0, 3, 0))})
-	
-	tween:Play()
-	
-	local startTime = tick()
-	while tween.PlaybackState == Enum.PlaybackState.Playing do
-		task.wait(0.05)
-		local _, currentHum, currentHrp = getCharacterParts()
-		if tick() - startTime > timeTaken + 1 or not currentHrp or not currentHum or currentHum.Health <= 0 then
-			tween:Cancel()
-			break
-		end
-	end
-end
-
-local isAutoMountainRunning = false
-
-task.spawn(function()
-	while true do
-		task.wait(0.2)
-		if isAutoMountainRunning then
-			pcall(function()
-				local _, hum, hrp, _ = getCharacterParts()
-				if not hrp or not hum or hum.Health <= 0 then 
-					return 
-				end
-
-				equipSelectedTool()
-				local peakPos = findHighestMountainPeak()
-				
-				if peakPos then
-					tweenToPosition(peakPos)
-				end
-
-				local currentHrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-				if currentHrp then
-					local pos = currentHrp.Position
-					local feetPos = pos - Vector3.new(0, 3, 0)
-					local toolName = Config.MiningTool or "The Terminus"
-					if toolName == "The Terminus" then
-						digRequest:FireServer("The Terminus", vector.create(pos.X, pos.Y, pos.Z))
-					elseif toolName == "Sledge Hammer" then
-						sledgeSwing:FireServer(vector.create(feetPos.X, feetPos.Y, feetPos.Z))
-					end
-				end
-			end)
-		end
-	end
-end)
-
-BtnAutoMountain.MouseButton1Click:Connect(function()
-	isAutoMountainRunning = not isAutoMountainRunning
-	Config.AutoMountain = isAutoMountainRunning
-	saveConfig()
-	setToggleState(BgAutoMountain, CircleAutoMountain, isAutoMountainRunning)
-	if isAutoMountainRunning then
-		equipSelectedTool()
-	end
 end)
 
 -- ====================================================================
@@ -1648,6 +1654,7 @@ local imTargets = {
 }
 local hookedFoldersIM = {}
 
+fnctable = nil
 local function patchPromptIM(p6)
     if p6:IsA("ProximityPrompt") then
         local v7 = p6:GetAttribute("IMC_OrigHold")
@@ -1762,7 +1769,7 @@ end)
 
 -- Nocturnite Farm Handler
 local nocturniteFolder = Workspace:WaitForChild("MountainDecorations"):WaitForChild("Boulders"):WaitForChild("Nocturnite")
-local digRequestRemoteNoc = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("DigRequest")
+local digRequest = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("DigRequest")
 
 local TWEEN_SPEED_NOC = 90 
 local DETECTION_RADIUS = 50 
@@ -1771,7 +1778,7 @@ local activeTween = nil
 local isNocturniteFarmRunning = false
 local isFloating = false
 
-local function equipTerminusNoc()
+local function equipTerminus()
 	local character = player.Character
 	if not character then return end
 	if character:FindFirstChild("The Terminus") then return end
@@ -1837,7 +1844,7 @@ end
 
 local function farmSinglePart(partName, targetPart)
 	while isNocturniteFarmRunning and targetPart and targetPart.Parent and targetPart:IsA("BasePart") do
-		equipTerminusNoc()
+		equipTerminus()
 		local character = player.Character
 		if not character or not character:FindFirstChild("HumanoidRootPart") then break end
 		local humanoidRootPart = character.HumanoidRootPart
@@ -1849,7 +1856,7 @@ local function farmSinglePart(partName, targetPart)
 			startFloating()
 			humanoidRootPart.CFrame = humanoidRootPart.CFrame:Lerp(safeTargetCFrame, 0.3)
 		end
-		digRequestRemoteNoc:FireServer("The Terminus", targetPart.Position)
+		digRequest:FireServer("The Terminus", targetPart.Position)
 		task.wait(0.3)
 		targetPart = nocturniteFolder:FindFirstChild(partName)
 	end
@@ -1888,7 +1895,7 @@ BtnNocturnite.MouseButton1Click:Connect(function()
 	saveConfig()
 	setToggleState(BgNocturnite, CircleNocturnite, isNocturniteFarmRunning)
 	if isNocturniteFarmRunning then
-		equipTerminusNoc()
+		equipTerminus()
 		task.spawn(farmAllCells)
 	else
 		stopFloating()
@@ -1978,7 +1985,7 @@ AutoDigDropdownBtn.MouseButton1Click:Connect(function()
 	AutoDigScrollingFrame.Visible = isAutoDigDropdownOpen
 end)
 
-local function getCharacterPartsMisc()
+local function getCharacterParts()
 	local char = player.Character or player.CharacterAdded:Wait()
 	local hum = char:WaitForChild("Humanoid")
 	local hrp = char:WaitForChild("HumanoidRootPart")
@@ -1986,8 +1993,8 @@ local function getCharacterPartsMisc()
 	return char, hum, hrp, bp
 end
 
-local function equipTerminusToolMisc()
-	local char, hum, _, bp = getCharacterPartsMisc()
+local function equipTerminusTool()
+	local char, hum, _, bp = getCharacterParts()
 	if char:FindFirstChild("The Terminus") then return end
 	local tool = bp:FindFirstChild("The Terminus")
 	if tool and tool:IsA("Tool") then hum:EquipTool(tool) end
@@ -1997,8 +2004,8 @@ task.spawn(function()
 	while true do
 		if isAutoDigRunning then
 			pcall(function()
-				equipTerminusToolMisc()
-				local _, _, hrp, _ = getCharacterPartsMisc()
+				equipTerminusTool()
+				local _, _, hrp, _ = getCharacterParts()
 				if hrp then
 					local pos = hrp.Position
 					digRequest:FireServer("The Terminus", Vector3.new(pos.X, pos.Y, pos.Z))
@@ -2062,7 +2069,7 @@ MiscToggleBtn.MouseButton1Click:Connect(function()
 	local labelComp = MiscToggleBtn:FindFirstChildOfClass("TextLabel")
 	if isAutoDigRunning then
 		updateAutoDigButtonText()
-		equipTerminusToolMisc()
+		equipTerminusTool()
 		startAutoDigTimer()
 	else
 		autoDigSession = autoDigSession + 1
@@ -2092,7 +2099,7 @@ UserInputService.JumpRequest:Connect(function()
 end)
 
 -- ====================================================================
--- AUTO LOW SERVER
+-- AUTO LOW SERVER (FIXED STATUS BAR & NOCTURNITE DETECTION)
 -- ====================================================================
 local selectedHopDelayMode = Config.HopDelay or "60s"
 local isAutoLowServerRunning = false
@@ -2291,11 +2298,9 @@ task.spawn(function()
 	if Config.AutoSell then isSellRunning = true setToggleState(Bg3, Circle3, true, true) end
 	if Config.FarmingCrystal then isFarmingCrystalRunning = true setToggleState(BgFarmingCrystal, CircleFarmingCrystal, true, true) end
 	if Config.CrystalMutasiTerminus then isCrystalTerminusRunning = true setToggleState(BgCrystalTerminus, CircleCrystalTerminus, true, true) end
-	if Config.NocturniteFarm then isNocturniteFarmRunning = true setToggleState(BgNocturnite, CircleNocturnite, true, true) equipTerminusNoc() task.spawn(farmAllCells) end
+	if Config.NocturniteFarm then isNocturniteFarmRunning = true setToggleState(BgNocturnite, CircleNocturnite, true, true) equipTerminus() task.spawn(farmAllCells) end
 	if Config.CollectRune then isCollectRuneRunning = true setToggleState(BgRune, CircleRune, true, true) end
 	if Config.DropRune then isDropRuneRunning = true updateDropRuneToggle() end
-	if Config.AutoMountain then isAutoMountainRunning = true setToggleState(BgAutoMountain, CircleAutoMountain, true, true) end
-	if Config.MiningTool then ToolDropdownBtn.Text = "  Tool: " .. Config.MiningTool .. " ▼" end
 	if Config.MutasiTerminus then 
 		isEspTerminusRunning = true 
 		setToggleState(BgESP1, CircleESP1, true, true) 
@@ -2316,6 +2321,11 @@ task.spawn(function()
 	end
 	if Config.FastDig then isFastDigRunning = true setToggleState(BgFastDig, CircleFastDig, true, true) end
 	if Config.InfinityJump then isInfinityJumpRunning = true setToggleState(InfJumpBg, InfJumpCircle, true, true) end
+	if Config.AutoMountain then
+		isAutoFarmRunning = true
+		setToggleState(BgAutoMountain, CircleAutoMountain, true, true)
+		equipSelectedToolAutoMountain()
+	end
 
 	selectedAutoDigDuration = Config.AutoDigDuration or "60s"
 	AutoDigDropdownBtn.Text = "  Auto Dig Time: " .. selectedAutoDigDuration .. " ▼"
@@ -2323,7 +2333,7 @@ task.spawn(function()
 		isAutoDigRunning = true
 		setToggleState(MiscBg, MiscCircle, true, true)
 		updateAutoDigButtonText()
-		equipTerminusToolMisc()
+		equipTerminusTool()
 		startAutoDigTimer()
 	else
 		isAutoDigRunning = false
