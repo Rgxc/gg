@@ -1,5 +1,5 @@
 -- ====================================================================
--- Mine A Mountain | Rgx Hub (Full Fixed Version - Auto Dig, Auto Low Server, ESP InstantMine & Clear Mountain)
+-- Mine A Mountain | Rgx Hub (Full Fixed Version - Auto Dig, Auto Low Server & ESP InstantMine & Clear Mountain)
 -- ====================================================================
 
 local CoreGui = game:GetService("CoreGui")
@@ -37,7 +37,7 @@ local Config = {
 	AutoLowServer = false,
 	HopDelay = "60s",
 	OtomatisMinimize = true,
-	AutoClearMountain = false,
+	ClearMountain = false,
 	ClearMountainTool = "The Terminus"
 }
 
@@ -99,7 +99,7 @@ MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
 MainFrame.BackgroundTransparency = 0.05
 MainFrame.Position = UDim2.new(0, 62, 0, 10)
-MainFrame.Size = UDim2.new(0, 240, 0, 310)
+MainFrame.Size = UDim2.new(0, 240, 0, 275)
 MainFrame.Visible = not Config.OtomatisMinimize
 
 local MainCorner = Instance.new("UICorner")
@@ -176,7 +176,7 @@ local function createPageContainer()
 	container.BackgroundTransparency = 1
 	container.Position = UDim2.new(0, 98, 0, 42)
 	container.Size = UDim2.new(1, -106, 1, -50)
-	container.CanvasSize = UDim2.new(0, 0, 0, 650)
+	container.CanvasSize = UDim2.new(0, 0, 0, 680)
 	container.ScrollBarThickness = 2
 	container.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 80)
 	container.Visible = false
@@ -276,72 +276,71 @@ local BtnCrystalTerminus, BgCrystalTerminus, CircleCrystalTerminus = createToggl
 local BtnNocturnite, BgNocturnite, CircleNocturnite = createToggleFeature(MiningPage, "Nocturnite Farm")
 local BtnRune, BgRune, CircleRune = createToggleFeature(MiningPage, "Collect Rune")
 
--- ====================================================================
--- CLEAR MOUNTAIN / AUTO MOUNTAIN FEATURE (INTEGRATED IN MINING)
--- ====================================================================
-local BtnClearMountain, BgClearMountain, CircleClearMountain = createToggleFeature(MiningPage, "Auto Mountain")
+-- Clear Mountain & Pilihan Tool 
+createCategoryLabel(MiningPage, "Clear Mountain System")
+local BtnClearMountain, BgClearMountain, CircleClearMountain = createToggleFeature(MiningPage, "Auto Clear Mountain")
 
-local ClearMountainDropdownBtn = Instance.new("TextButton")
-ClearMountainDropdownBtn.Parent = MiningPage
-ClearMountainDropdownBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 36)
-ClearMountainDropdownBtn.Size = UDim2.new(1, -8, 0, 32)
-ClearMountainDropdownBtn.TextColor3 = Color3.fromRGB(220, 220, 235)
-ClearMountainDropdownBtn.Text = "  Tool: " .. Config.ClearMountainTool .. " ▼"
-ClearMountainDropdownBtn.TextXAlignment = Enum.TextXAlignment.Left
-ClearMountainDropdownBtn.TextSize = 9
-ClearMountainDropdownBtn.Font = Enum.Font.GothamMedium
-ClearMountainDropdownBtn.AutoButtonColor = false
+local selectedClearTool = Config.ClearMountainTool or "The Terminus"
+local ClearToolDropdownBtn = Instance.new("TextButton")
+ClearToolDropdownBtn.Parent = MiningPage
+ClearToolDropdownBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 36)
+ClearToolDropdownBtn.Size = UDim2.new(1, -8, 0, 32)
+ClearToolDropdownBtn.TextColor3 = Color3.fromRGB(220, 220, 235)
+ClearToolDropdownBtn.Text = "  Tool: " .. selectedClearTool .. " ▼"
+ClearToolDropdownBtn.TextXAlignment = Enum.TextXAlignment.Left
+ClearToolDropdownBtn.TextSize = 9
+ClearToolDropdownBtn.Font = Enum.Font.GothamMedium
+ClearToolDropdownBtn.AutoButtonColor = false
 
-local ClearMountainCorner = Instance.new("UICorner") ClearMountainCorner.CornerRadius = UDim.new(0, 6) ClearMountainCorner.Parent = ClearMountainDropdownBtn
-local ClearMountainStroke = Instance.new("UIStroke") ClearMountainStroke.Color = Color3.fromRGB(45, 45, 60) ClearMountainStroke.Thickness = 1 ClearMountainStroke.Parent = ClearMountainDropdownBtn
+local ClearToolDropdownCorner = Instance.new("UICorner") ClearToolDropdownCorner.CornerRadius = UDim.new(0, 6) ClearToolDropdownCorner.Parent = ClearToolDropdownBtn
+local ClearToolDropdownStroke = Instance.new("UIStroke") ClearToolDropdownStroke.Color = Color3.fromRGB(45, 45, 60) ClearToolDropdownStroke.Thickness = 1 ClearToolDropdownStroke.Parent = ClearToolDropdownBtn
 
-local ClearMountainScrollingFrame = Instance.new("ScrollingFrame")
-ClearMountainScrollingFrame.Parent = MiningPage
-ClearMountainScrollingFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
-ClearMountainScrollingFrame.Size = UDim2.new(1, -8, 0, 60)
-ClearMountainScrollingFrame.BorderSizePixel = 0
-ClearMountainScrollingFrame.Visible = false
-ClearMountainScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 60)
-ClearMountainScrollingFrame.ScrollBarThickness = 2
-ClearMountainScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 80)
+local ClearToolScrollingFrame = Instance.new("ScrollingFrame")
+ClearToolScrollingFrame.Parent = MiningPage
+ClearToolScrollingFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
+ClearToolScrollingFrame.Size = UDim2.new(1, -8, 0, 110)
+ClearToolScrollingFrame.BorderSizePixel = 0
+ClearToolScrollingFrame.Visible = false
+ClearToolScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 150)
+ClearToolScrollingFrame.ScrollBarThickness = 2
+ClearToolScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 80)
 
-local CMUIListLayout = Instance.new("UIListLayout")
-CMUIListLayout.Parent = ClearMountainScrollingFrame
-CMUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-CMUIListLayout.Padding = UDim.new(0, 3)
+local ClearToolUIListLayout = Instance.new("UIListLayout")
+ClearToolUIListLayout.Parent = ClearToolScrollingFrame
+ClearToolUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+ClearToolUIListLayout.Padding = UDim.new(0, 3)
 
-local isCMDropdownOpen = false
-ClearMountainDropdownBtn.MouseButton1Click:Connect(function()
-	isCMDropdownOpen = not isCMDropdownOpen
-	ClearMountainScrollingFrame.Visible = isCMDropdownOpen
-end)
-
-local selectedClearMountainTool = Config.ClearMountainTool or "The Terminus"
-local isAutoClearMountainRunning = Config.AutoClearMountain or false
-
-local function createCMOption(toolName)
+local function createClearToolOption(name)
 	local optBtn = Instance.new("TextButton")
-	optBtn.Parent = ClearMountainScrollingFrame
+	optBtn.Parent = ClearToolScrollingFrame
 	optBtn.BackgroundColor3 = Color3.fromRGB(32, 32, 40)
-	optBtn.Size = UDim2.new(1, -4, 0, 26)
+	optBtn.Size = UDim2.new(1, -4, 0, 28)
 	optBtn.TextColor3 = Color3.fromRGB(180, 180, 195)
-	optBtn.Text = "  " .. toolName
+	optBtn.Text = "  " .. name
 	optBtn.TextXAlignment = Enum.TextXAlignment.Left
 	optBtn.TextSize = 9
 	optBtn.Font = Enum.Font.Gotham
 	local c = Instance.new("UICorner") c.CornerRadius = UDim.new(0, 4) c.Parent = optBtn
-	
 	optBtn.MouseButton1Click:Connect(function()
-		selectedClearMountainTool = toolName
-		Config.ClearMountainTool = toolName
+		selectedClearTool = name
+		Config.ClearMountainTool = name
 		saveConfig()
-		ClearMountainDropdownBtn.Text = "  Tool: " .. toolName .. " ▼"
-		ClearMountainScrollingFrame.Visible = false
+		ClearToolDropdownBtn.Text = "  Tool: " .. name .. " ▼"
+		ClearToolScrollingFrame.Visible = false
 	end)
 end
 
-createCMOption("The Terminus")
-createCMOption("Sledge Hammer")
+createClearToolOption("The Terminus")
+createClearToolOption("Sledgehammer")
+createClearToolOption("Dark Matter Pickaxe")
+createClearToolOption("Diamond Pickaxe")
+createClearToolOption("Golden Pickaxe")
+
+local isClearToolDropdownOpen = false
+ClearToolDropdownBtn.MouseButton1Click:Connect(function()
+	isClearToolDropdownOpen = not isClearToolDropdownOpen
+	ClearToolScrollingFrame.Visible = isClearToolDropdownOpen
+end)
 
 local BtnESP1, BgESP1, CircleESP1 = createToggleFeature(ESPPage, "Mutasi Terminus")
 local BtnESP2, BgESP2, CircleESP2 = createToggleFeature(ESPPage, "Nocturnite")
@@ -575,185 +574,7 @@ ToggleBtn.MouseButton1Click:Connect(function()
 end)
 
 -- ====================================================================
--- CLEAR MOUNTAIN LOGIC & FUNCTIONS
--- ====================================================================
-local remotesFolder = ReplicatedStorage:WaitForChild("Remotes")
-local digRequest = remotesFolder:WaitForChild("DigRequest")
-local sledgeSwing = remotesFolder:WaitForChild("SledgeSwing")
-
-local TargetTerrainMaterials = {
-	Enum.Material.Ground,
-	Enum.Material.Sandstone,
-	Enum.Material.Rock,
-	Enum.Material.Snow,
-	Enum.Material.Ice,
-	Enum.Material.Glacier,
-	Enum.Material.Slate,
-	Enum.Material.Basalt,
-	Enum.Material.Limestone
-}
-
-local function getCharacterParts()
-	local char = player.Character
-	if not char then return nil, nil, nil, nil end
-	local hum = char:FindFirstChildOfClass("Humanoid")
-	local hrp = char:FindFirstChild("HumanoidRootPart")
-	local bp = player:FindFirstChild("Backpack")
-	return char, hum, hrp, bp
-end
-
-local function equipClearTool()
-	local char, hum, _, bp = getCharacterParts()
-	if not char or not hum or not bp then return end
-	
-	if char:FindFirstChild(selectedClearMountainTool) then
-		local activeTool = char:FindFirstChild(selectedClearMountainTool)
-		pcall(function() activeTool:Activate() end)
-		return
-	end
-	
-	local tool = bp:FindFirstChild(selectedClearMountainTool)
-	if not tool and selectedClearMountainTool == "Sledge Hammer" then
-		for _, item in ipairs(bp:GetChildren()) do
-			if item:IsA("Tool") then
-				local name = item.Name:lower()
-				if name:find("sledge") or name:find("hammer") or name:find("dig") or name:find("shovel") then
-					tool = item
-					break
-				end
-			end
-		end
-	end
-	
-	if tool and tool:IsA("Tool") then
-		hum:EquipTool(tool)
-		pcall(function() tool:Activate() end)
-	end
-end
-
-local function findHighestMountainPeak()
-	local _, _, hrp, _ = getCharacterParts()
-	if not hrp then return nil end
-	local rootPos = hrp.Position
-
-	local bestPos = nil
-	local highestY = -math.huge
-
-	local yawAngles = {0, 45, 90, 135, 180, 225, 270, 315}
-	local pitchAngles = {15, 35, 55}
-
-	for _, yaw in ipairs(yawAngles) do
-		for _, pitch in ipairs(pitchAngles) do
-			local yawRad = math.rad(yaw)
-			local pitchRad = math.rad(pitch)
-			
-			local horizontalDist = 200 * math.cos(pitchRad)
-			local verticalDist = 200 * math.sin(pitchRad)
-			
-			local dir = Vector3.new(
-				math.cos(yawRad) * horizontalDist,
-				verticalDist,
-				math.sin(yawRad) * horizontalDist
-			)
-			
-			local rayParams = RaycastParams.new()
-			rayParams.IgnoreWater = true
-			
-			local rayResult = workspace:Raycast(rootPos + Vector3.new(0, 3, 0), dir, rayParams)
-			if rayResult and rayResult.Material then
-				for _, mat in ipairs(TargetTerrainMaterials) do
-					if rayResult.Material == mat then
-						if rayResult.Position.Y > highestY then
-							highestY = rayResult.Position.Y
-							bestPos = rayResult.Position
-						end
-						break
-					end
-				end
-			end
-		end
-	end
-
-	if not bestPos then
-		local downRay = workspace:Raycast(rootPos + Vector3.new(0, 5, 0), Vector3.new(0, -150, 0), RaycastParams.new())
-		if downRay and downRay.Material then
-			for _, mat in ipairs(TargetTerrainMaterials) do
-				if downRay.Material == mat then
-					bestPos = downRay.Position
-					break
-				end
-			end
-		end
-	end
-
-	return bestPos
-end
-
-local function tweenToPosition(targetPos)
-	local _, hum, hrp, _ = getCharacterParts()
-	if not hrp or not hum or hum.Health <= 0 then return end
-
-	local distance = (hrp.Position - targetPos).Magnitude
-	local speed = 140
-	local timeTaken = math.clamp(distance / speed, 0.1, 2.5)
-
-	local tweenInfo = TweenInfo.new(timeTaken, Enum.EasingStyle.Linear)
-	local tween = TweenService:Create(hrp, tweenInfo, {CFrame = CFrame.new(targetPos + Vector3.new(0, 3, 0))})
-	
-	tween:Play()
-	
-	local startTime = tick()
-	while tween.PlaybackState == Enum.PlaybackState.Playing do
-		task.wait(0.05)
-		local _, currentHum, currentHrp = getCharacterParts()
-		if tick() - startTime > timeTaken + 1 or not currentHrp or not currentHum or currentHum.Health <= 0 then
-			tween:Cancel()
-			break
-		end
-	end
-end
-
-task.spawn(function()
-	while true do
-		task.wait(0.2)
-		if isAutoClearMountainRunning then
-			pcall(function()
-				local _, hum, hrp, _ = getCharacterParts()
-				if not hrp or not hum or hum.Health <= 0 then return end
-
-				equipClearTool()
-				local peakPos = findHighestMountainPeak()
-				if peakPos then
-					tweenToPosition(peakPos)
-				end
-
-				local currentHrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-				if currentHrp then
-					local pos = currentHrp.Position
-					local feetPos = pos - Vector3.new(0, 3, 0)
-					if selectedClearMountainTool == "The Terminus" then
-						digRequest:FireServer("The Terminus", vector.create(pos.X, pos.Y, pos.Z))
-					elseif selectedClearMountainTool == "Sledge Hammer" then
-						sledgeSwing:FireServer(vector.create(feetPos.X, feetPos.Y, feetPos.Z))
-					end
-				end
-			end)
-		end
-	end
-end)
-
-BtnClearMountain.MouseButton1Click:Connect(function()
-	isAutoClearMountainRunning = not isAutoClearMountainRunning
-	Config.AutoClearMountain = isAutoClearMountainRunning
-	saveConfig()
-	setToggleState(BgClearMountain, CircleClearMountain, isAutoClearMountainRunning)
-	if isAutoClearMountainRunning then
-		equipClearTool()
-	end
-end)
-
--- ====================================================================
--- MINING & FARMING CRYSTAL / MUTASI TERMINUS / COLLECT RUNE
+-- MINING & FARMING CRYSTAL / MUTASI TERMINUS / COLLECT RUNE / CLEAR MOUNTAIN
 -- ====================================================================
 local remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CrystalDropRequest")
 
@@ -1418,6 +1239,65 @@ BtnRune.MouseButton1Click:Connect(function()
 	if not isCollectRuneRunning then isCollecting = false end
 end)
 
+-- ====================================================================
+-- AUTO CLEAR MOUNTAIN LOGIC
+-- ====================================================================
+local isClearMountainRunning = false
+
+BtnClearMountain.MouseButton1Click:Connect(function()
+	isClearMountainRunning = not isClearMountainRunning
+	Config.ClearMountain = isClearMountainRunning
+	saveConfig()
+	setToggleState(BgClearMountain, CircleClearMountain, isClearMountainRunning)
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(0.15)
+		if isClearMountainRunning then
+			pcall(function()
+				local char = player.Character
+				if not char then return end
+				local hrp = char:FindFirstChild("HumanoidRootPart")
+				if not hrp then return end
+				
+				-- Check & Equip Tool selected by player
+				local bp = player:FindFirstChild("Backpack")
+				local hum = char:FindFirstChildOfClass("Humanoid")
+				if not char:FindFirstChild(selectedClearTool) then
+					local toolToEquip = bp:FindFirstChild(selectedClearTool)
+					if toolToEquip and toolToEquip:IsA("Tool") then 
+						hum:EquipTool(toolToEquip)
+						task.wait(0.1)
+					end
+				end
+
+				local pos = hrp.Position
+				local remotes = ReplicatedStorage:FindFirstChild("Remotes")
+				local digReq = remotes and remotes:FindFirstChild("DigRequest")
+				local sledgeReq = remotes and remotes:FindFirstChild("SledgeSwing")
+				
+				-- Grid loop for clearing a massive area around the player
+				local radius = 15
+				local step = 5
+				for x = -radius, radius, step do
+					for z = -radius, radius, step do
+						for y = -10, radius, step do
+							local tPos = Vector3.new(pos.X + x, pos.Y + y, pos.Z + z)
+							if selectedClearTool == "Sledgehammer" and sledgeReq then
+								sledgeReq:FireServer(tPos)
+							elseif digReq then
+								digReq:FireServer(selectedClearTool, tPos)
+							end
+						end
+					end
+				end
+			end)
+		end
+	end
+end)
+
+
 -- ESP Mutasi Terminus & Nocturnite
 local isEspTerminusRunning = false
 
@@ -1636,7 +1516,9 @@ BtnESP2.MouseButton1Click:Connect(function()
 	if not isEspNocturniteRunning then clearAllNocturniteESP() end
 end)
 
--- Instan Mine ESP Controller
+-- ====================================================================
+-- INSTAN MINE (INSTANT MINE CONTROLLER BYPASS DI TAB ESP)
+-- ====================================================================
 local isInstanMineESPRunning = false
 local imTargets = {
     { parent = "Things", child = "Crystals" },
@@ -1728,7 +1610,9 @@ BtnInstanMineESP.MouseButton1Click:Connect(function()
 	end
 end)
 
--- Fast Dig
+-- ====================================================================
+-- FAST DIG (AUTO INFINITE FAST MINE BOOST)
+-- ====================================================================
 local isFastDigRunning = false
 
 task.spawn(function()
@@ -1757,7 +1641,7 @@ end)
 
 -- Nocturnite Farm Handler
 local nocturniteFolder = Workspace:WaitForChild("MountainDecorations"):WaitForChild("Boulders"):WaitForChild("Nocturnite")
-local digRequestRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("DigRequest")
+local digRequest = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("DigRequest")
 
 local TWEEN_SPEED_NOC = 90 
 local DETECTION_RADIUS = 50 
@@ -1844,7 +1728,7 @@ local function farmSinglePart(partName, targetPart)
 			startFloating()
 			humanoidRootPart.CFrame = humanoidRootPart.CFrame:Lerp(safeTargetCFrame, 0.3)
 		end
-		digRequestRemote:FireServer("The Terminus", targetPart.Position)
+		digRequest:FireServer("The Terminus", targetPart.Position)
 		task.wait(0.3)
 		targetPart = nocturniteFolder:FindFirstChild(partName)
 	end
@@ -1890,7 +1774,10 @@ BtnNocturnite.MouseButton1Click:Connect(function()
 	end
 end)
 
--- Misc Section: Auto Dig & Auto Low Server
+-- ====================================================================
+-- MISC AUTO DIG, OTOMATIS MINIMIZE & AUTO LOW SERVER
+-- ====================================================================
+
 local BtnAutoMin, BgAutoMin, CircleAutoMin = createToggleFeature(MiscPage, "Otomatis Minimize")
 BtnAutoMin.MouseButton1Click:Connect(function()
 	Config.OtomatisMinimize = not Config.OtomatisMinimize
@@ -1969,6 +1856,14 @@ AutoDigDropdownBtn.MouseButton1Click:Connect(function()
 	isAutoDigDropdownOpen = not isAutoDigDropdownOpen
 	AutoDigScrollingFrame.Visible = isAutoDigDropdownOpen
 end)
+
+local function getCharacterParts()
+	local char = player.Character or player.CharacterAdded:Wait()
+	local hum = char:WaitForChild("Humanoid")
+	local hrp = char:WaitForChild("HumanoidRootPart")
+	local bp = player:WaitForChild("Backpack")
+	return char, hum, hrp, bp
+end
 
 local function equipTerminusTool()
 	local char, hum, _, bp = getCharacterParts()
@@ -2075,7 +1970,9 @@ UserInputService.JumpRequest:Connect(function()
 	end
 end)
 
--- Auto Low Server
+-- ====================================================================
+-- AUTO LOW SERVER (FIXED STATUS BAR & NOCTURNITE DETECTION)
+-- ====================================================================
 local selectedHopDelayMode = Config.HopDelay or "60s"
 local isAutoLowServerRunning = false
 
@@ -2276,6 +2173,7 @@ task.spawn(function()
 	if Config.NocturniteFarm then isNocturniteFarmRunning = true setToggleState(BgNocturnite, CircleNocturnite, true, true) equipTerminus() task.spawn(farmAllCells) end
 	if Config.CollectRune then isCollectRuneRunning = true setToggleState(BgRune, CircleRune, true, true) end
 	if Config.DropRune then isDropRuneRunning = true updateDropRuneToggle() end
+	if Config.ClearMountain then isClearMountainRunning = true setToggleState(BgClearMountain, CircleClearMountain, true, true) end
 	if Config.MutasiTerminus then 
 		isEspTerminusRunning = true 
 		setToggleState(BgESP1, CircleESP1, true, true) 
@@ -2296,13 +2194,6 @@ task.spawn(function()
 	end
 	if Config.FastDig then isFastDigRunning = true setToggleState(BgFastDig, CircleFastDig, true, true) end
 	if Config.InfinityJump then isInfinityJumpRunning = true setToggleState(InfJumpBg, InfJumpCircle, true, true) end
-	if Config.AutoClearMountain then
-		isAutoClearMountainRunning = true
-		setToggleState(BgClearMountain, CircleClearMountain, true, true)
-	end
-
-	selectedClearMountainTool = Config.ClearMountainTool or "The Terminus"
-	ClearMountainDropdownBtn.Text = "  Tool: " .. selectedClearMountainTool .. " ▼"
 
 	selectedAutoDigDuration = Config.AutoDigDuration or "60s"
 	AutoDigDropdownBtn.Text = "  Auto Dig Time: " .. selectedAutoDigDuration .. " ▼"
@@ -2329,4 +2220,4 @@ task.spawn(function()
 	updateHopButtonText()
 end)
 
-print("Mine A Mountain Full Fixed Berhasil Dimuat!")
+print("Mine A Mountain Full Fixed Berhasil Dimuat (Dilengkapi Clear Mountain)!")
