@@ -17,12 +17,13 @@ local isAutoFarmRunning = false
 local selectedToolName = nil -- Default tidak ada tool yang dipilih (Hanya Tween)
 local isListExpanded = false -- Status list tertutup/terbuka
 
--- Variabel Anti-Stuck
+-- Variabel Anti-Stuck (1.5 Detik)
 local lastPosition = Vector3.new(0, 0, 0)
 local stuckStartTime = tick()
 
--- Target material tanah gunung, batu, dan gunung salju / es
+-- Target material dengan CrackedLava di urutan paling atas
 local TargetTerrainMaterials = {
+	Enum.Material.CrackedLava,
 	Enum.Material.Ground,
 	Enum.Material.Sandstone,
 	Enum.Material.Rock,
@@ -310,11 +311,11 @@ task.spawn(function()
 					return 
 				end
 
-				-- FITUR ANTI-STUCK: Cek apakah posisi terjebak tidak berubah
+				-- FITUR ANTI-STUCK (1.5 Detik): Cek apakah posisi terjebak tidak berubah
 				local currentPos = hrp.Position
 				if (currentPos - lastPosition).Magnitude < 2 then
-					if tick() - stuckStartTime > 2.5 then
-						-- Jika terjebak selama > 2.5 detik, teleport sedikit ke atas & keluar dari halangan
+					if tick() - stuckStartTime > 1.5 then
+						-- Jika terjebak selama > 1.5 detik, teleport sedikit ke atas & keluar dari halangan
 						hrp.CFrame = CFrame.new(currentPos + Vector3.new(math.random(-15, 15), 25, math.random(-15, 15)))
 						stuckStartTime = tick()
 						return
