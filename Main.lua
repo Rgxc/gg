@@ -1,5 +1,5 @@
 -- ==========================================
--- SCRIPT UTAMA: ALL FARM, AUTO MOUNTAIN & SAFE MULTI-INJECT
+-- SCRIPT UTAMA: ALL FARM, AUTO MOUNTAIN & AUTO BUY BOMBS
 -- ==========================================
 
 local CoreGui = game:GetService("CoreGui")
@@ -30,10 +30,20 @@ local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local digRequest = remotes:WaitForChild("DigRequest")
 local sledgeSwing = remotes:WaitForChild("SledgeSwing")
 local crystalDropRemote = remotes:WaitForChild("CrystalDropRequest")
+local bombBuyRequest = remotes:WaitForChild("BombBuyRequest")
 
 local isAutoFarmRunning = false
 local selectedToolName = nil 
 local isListExpanded = false 
+local isBombListExpanded = false
+local isBombBuyRunning = false
+
+local bombList = {
+    "ClassicBomb", "WindBomb", "IceBomb", "FireBomb", 
+    "ThunderBomb", "PoisonBomb", "TimeBomb", "AgonyBomb", "NukeBomb"
+}
+local activeBombs = {}
+for _, id in ipairs(bombList) do activeBombs[id] = true end
 
 local lastPosition = Vector3.new(0, 0, 0)
 local stuckStartTime = tick()
@@ -70,7 +80,9 @@ local function saveConfig()
 			local data = {
 				isAllFarmRunning = isAllFarmRunning,
 				isAutoFarmRunning = isAutoFarmRunning,
-				selectedToolName = selectedToolName
+				selectedToolName = selectedToolName,
+				isBombBuyRunning = isBombBuyRunning,
+				activeBombs = activeBombs
 			}
 			writefile(CONFIG_FILE, game:GetService("HttpService"):JSONEncode(data))
 		end)
@@ -86,6 +98,12 @@ local function loadConfig()
 			isAllFarmRunning = result.isAllFarmRunning or false
 			isAutoFarmRunning = result.isAutoFarmRunning or false
 			selectedToolName = result.selectedToolName or nil
+			isBombBuyRunning = result.isBombBuyRunning or false
+			if type(result.activeBombs) == "table" then
+				for k, v in pairs(result.activeBombs) do
+					activeBombs[k] = v
+				end
+			end
 		end
 	end
 end
@@ -114,7 +132,6 @@ local toggleCorner = Instance.new("UICorner")
 toggleCorner.CornerRadius = UDim.new(0, 8)
 toggleCorner.Parent = openCloseBtn
 
--- Loop Rainbow Aman
 local rainbowTask = task.spawn(function()
 	while true do
 		local hue = (tick() % 12) / 12 
@@ -133,14 +150,18 @@ screenGui.Name = "UnifiedFarmGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
+-- DIUBAH: Panel dimulai sebagai false (hidden)
+local isPanelVisible = false 
+
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 150, 0, 125) -- Disesuaikan sedikit untuk teks lebih besar
+mainFrame.Size = UDim2.new(0, 150, 0, 154)
 mainFrame.Position = UDim2.new(0, 52, 0, 35)
 mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
 mainFrame.Draggable = false
+mainFrame.Visible = isPanelVisible -- Panel disembunyikan saat run
 mainFrame.Parent = screenGui
 
 local mainCorner = Instance.new("UICorner")
@@ -163,7 +184,7 @@ toggleButton.Size = UDim2.new(0, 134, 0, 24)
 toggleButton.Position = UDim2.new(0, 8, 0, 24)
 toggleButton.BackgroundColor3 = isAllFarmRunning and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 50, 50)
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleButton.TextSize = 13.5 -- 50% lebih besar dari 9
+toggleButton.TextSize = 13.5
 toggleButton.Font = Enum.Font.GothamBold
 toggleButton.Text = isAllFarmRunning and "All Farm: ON" or "All Farm: OFF"
 toggleButton.Parent = mainFrame
@@ -178,7 +199,7 @@ btnAutoDig.Size = UDim2.new(0, 134, 0, 24)
 btnAutoDig.Position = UDim2.new(0, 8, 0, 52)
 btnAutoDig.BackgroundColor3 = isAutoFarmRunning and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 50, 50)
 btnAutoDig.TextColor3 = Color3.fromRGB(255, 255, 255)
-btnAutoDig.TextSize = 13.5 -- 50% lebih besar dari 9
+btnAutoDig.TextSize = 13.5
 btnAutoDig.Font = Enum.Font.GothamBold
 btnAutoDig.Text = isAutoFarmRunning and "Clear Map: ON" or "Clear Map: OFF"
 btnAutoDig.Parent = mainFrame
@@ -193,7 +214,7 @@ toolListBtn.Size = UDim2.new(1, -16, 0, 16)
 toolListBtn.Position = UDim2.new(0, 8, 0, 80)
 toolListBtn.BackgroundTransparency = 1
 toolListBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-toolListBtn.TextSize = 12 -- 50% lebih besar dari 8
+toolListBtn.TextSize = 12
 toolListBtn.Font = Enum.Font.GothamBold
 toolListBtn.Text = "Select Tools [+]"
 toolListBtn.TextXAlignment = Enum.TextXAlignment.Left
@@ -217,7 +238,7 @@ terminusCorner.Parent = btnTerminus
 local btnSledge = Instance.new("TextButton")
 btnSledge.Name = "BtnSledge"
 btnSledge.Size = UDim2.new(0, 134, 0, 20)
-btnSledge.Position = UDim2.new(0, 8, 0, 124)
+btnSledge.Position = UDim2.new(0, 8, 0, 122)
 btnSledge.TextColor3 = Color3.fromRGB(255, 255, 255)
 btnSledge.TextSize = 11
 btnSledge.Font = Enum.Font.GothamMedium
@@ -229,7 +250,103 @@ local sledgeCorner = Instance.new("UICorner")
 sledgeCorner.CornerRadius = UDim.new(0, 4)
 sledgeCorner.Parent = btnSledge
 
-local isPanelVisible = true
+-- Auto Buy Bombs Toggle
+local btnAutoBuyBombs = Instance.new("TextButton")
+btnAutoBuyBombs.Name = "BtnAutoBuyBombs"
+btnAutoBuyBombs.Size = UDim2.new(0, 134, 0, 22)
+btnAutoBuyBombs.Position = UDim2.new(0, 8, 0, 100)
+btnAutoBuyBombs.BackgroundColor3 = isBombBuyRunning and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 50, 50)
+btnAutoBuyBombs.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnAutoBuyBombs.TextSize = 12
+btnAutoBuyBombs.Font = Enum.Font.GothamBold
+btnAutoBuyBombs.Text = isBombBuyRunning and "Auto Buy Bombs: ON" or "Auto Buy Bombs: OFF"
+btnAutoBuyBombs.Parent = mainFrame
+
+local autoBuyCorner = Instance.new("UICorner")
+autoBuyCorner.CornerRadius = UDim.new(0, 4)
+autoBuyCorner.Parent = btnAutoBuyBombs
+
+-- Bomb List Toggle Button
+local bombListToggleBtn = Instance.new("TextButton")
+bombListToggleBtn.Name = "BombListToggleBtn"
+bombListToggleBtn.Size = UDim2.new(1, -16, 0, 16)
+bombListToggleBtn.Position = UDim2.new(0, 8, 0, 126)
+bombListToggleBtn.BackgroundTransparency = 1
+bombListToggleBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+bombListToggleBtn.TextSize = 12
+bombListToggleBtn.Font = Enum.Font.GothamBold
+bombListToggleBtn.Text = "Bomb List [+]"
+bombListToggleBtn.TextXAlignment = Enum.TextXAlignment.Left
+bombListToggleBtn.Parent = mainFrame
+
+-- Bomb List Scrolling Frame
+local bombListFrame = Instance.new("ScrollingFrame")
+bombListFrame.Name = "BombListFrame"
+bombListFrame.Size = UDim2.new(0, 134, 0, 160)
+bombListFrame.Position = UDim2.new(0, 8, 0, 146)
+bombListFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+bombListFrame.BorderSizePixel = 0
+bombListFrame.Visible = false
+bombListFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+bombListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+bombListFrame.Parent = mainFrame
+
+local bombListCorner = Instance.new("UICorner")
+bombListCorner.CornerRadius = UDim.new(0, 4)
+bombListCorner.Parent = bombListFrame
+
+local bombLayout = Instance.new("UIListLayout")
+bombLayout.Padding = UDim.new(0, 3)
+bombLayout.Parent = bombListFrame
+
+for _, bombId in ipairs(bombList) do
+	if activeBombs[bombId] == nil then activeBombs[bombId] = true end
+	
+	local bombBtn = Instance.new("TextButton")
+	bombBtn.Size = UDim2.new(1, -6, 0, 24)
+	bombBtn.Position = UDim2.new(0, 3, 0, 0)
+	bombBtn.BackgroundColor3 = activeBombs[bombId] and Color3.fromRGB(50, 170, 50) or Color3.fromRGB(170, 50, 50)
+	bombBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	bombBtn.TextSize = 11
+	bombBtn.Font = Enum.Font.Gotham
+	bombBtn.Text = (activeBombs[bombId] and "✔ " or "❌ ") .. bombId
+	bombBtn.Parent = bombListFrame
+	
+	local btnC = Instance.new("UICorner")
+	btnC.CornerRadius = UDim.new(0, 4)
+	btnC.Parent = bombBtn
+	
+	bombBtn.MouseButton1Click:Connect(function()
+		activeBombs[bombId] = not activeBombs[bombId]
+		bombBtn.BackgroundColor3 = activeBombs[bombId] and Color3.fromRGB(50, 170, 50) or Color3.fromRGB(170, 50, 50)
+		bombBtn.Text = (activeBombs[bombId] and "✔ " or "❌ ") .. bombId
+		saveConfig()
+	end)
+end
+
+local function updateUIlayout()
+	local toolOffset = isListExpanded and 44 or 0
+	
+	btnTerminus.Position = UDim2.new(0, 8, 0, 100)
+	btnSledge.Position = UDim2.new(0, 8, 0, 122)
+	
+	local autoBuyY = 100 + toolOffset
+	btnAutoBuyBombs.Position = UDim2.new(0, 8, 0, autoBuyY)
+	
+	local bombToggleY = autoBuyY + 26
+	bombListToggleBtn.Position = UDim2.new(0, 8, 0, bombToggleY)
+	
+	local bombFrameY = bombToggleY + 20
+	bombListFrame.Position = UDim2.new(0, 8, 0, bombFrameY)
+	
+	local totalHeight = bombFrameY + 6
+	if isBombListExpanded then
+		totalHeight = totalHeight + 165
+	end
+	
+	mainFrame.Size = UDim2.new(0, 150, 0, totalHeight)
+end
+
 openCloseBtn.MouseButton1Click:Connect(function()
 	isPanelVisible = not isPanelVisible
 	mainFrame.Visible = isPanelVisible
@@ -239,15 +356,33 @@ toolListBtn.MouseButton1Click:Connect(function()
 	isListExpanded = not isListExpanded
 	if isListExpanded then
 		toolListBtn.Text = "Select Tools [-]"
-		mainFrame.Size = UDim2.new(0, 150, 0, 150)
 		btnTerminus.Visible = true
 		btnSledge.Visible = true
 	else
 		toolListBtn.Text = "Select Tools [+]"
-		mainFrame.Size = UDim2.new(0, 150, 0, 125)
 		btnTerminus.Visible = false
 		btnSledge.Visible = false
 	end
+	updateUIlayout()
+end)
+
+bombListToggleBtn.MouseButton1Click:Connect(function()
+	isBombListExpanded = not isBombListExpanded
+	if isBombListExpanded then
+		bombListToggleBtn.Text = "Bomb List [-]"
+		bombListFrame.Visible = true
+	else
+		bombListToggleBtn.Text = "Bomb List [+]"
+		bombListFrame.Visible = false
+	end
+	updateUIlayout()
+end)
+
+btnAutoBuyBombs.MouseButton1Click:Connect(function()
+	isBombBuyRunning = not isBombBuyRunning
+	btnAutoBuyBombs.BackgroundColor3 = isBombBuyRunning and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 50, 50)
+	btnAutoBuyBombs.Text = isBombBuyRunning and "Auto Buy Bombs: ON" or "Auto Buy Bombs: OFF"
+	saveConfig()
 end)
 
 local function refreshToolButtons()
@@ -380,6 +515,24 @@ local function tweenToPosition(targetPos)
 		end
 	end
 end
+
+-- Auto Buy Loop Background Task
+task.spawn(function()
+	while true do
+		if isBombBuyRunning then
+			for _, bombId in ipairs(bombList) do
+				if not isBombBuyRunning then break end
+				if activeBombs[bombId] then
+					pcall(function()
+						bombBuyRequest:InvokeServer(bombId)
+					end)
+					task.wait(0.05)
+				end
+			end
+		end
+		task.wait(0.1)
+	end
+end)
 
 task.spawn(function()
 	while true do
